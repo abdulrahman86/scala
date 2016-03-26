@@ -37,7 +37,6 @@ def sqrt (x: Double) : Double = {
   sqrtHelper(1, x)
 
 }
-
 def factorial (n: Int) : Int = {
 
   def factorialHelper (n: Int, acc:Int) : Int =
