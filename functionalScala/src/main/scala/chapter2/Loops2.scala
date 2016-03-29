@@ -17,7 +17,7 @@ object Loops2 {
 
   def fibTailRecur(n: Int) : Int = {
     @tailrec
-    def fibHelper (curIndex: Int, n: Int, acc: Int, l1: Int, l2: Int) : Int = {
+    def fibHelper (curIndex: Int, n: Int, l1: Int, l2: Int) : Int = {
 
       if (curIndex <= n) {
         val x = curIndex match {
@@ -26,16 +26,16 @@ object Loops2 {
           case _ => l1 + l2
         }
 
-        fibHelper(curIndex + 1, n, acc + x, l2, x)
+        fibHelper(curIndex + 1, n, l2, x)
 
       }
 
       else {
-        acc
+        l2
       }
     }
 
-    fibHelper(0, n, 0, 0, 0)
+    fibHelper(0, n, 0, 0)
   }
 
   def findFirst2[T](x: Array[T], p : T => Boolean) : T = {
@@ -71,6 +71,12 @@ object Loops2 {
       true
     }else {
       loop(1)
+    }
+  }
+
+  def andThen[A,B,C](f : A => B, g : B => C) = {
+    (x : A) => {
+      g(f(x))
     }
   }
 }

@@ -10,7 +10,7 @@ import Loops2._
 class LoopsSpec extends FlatSpec with Matchers {
 
   "fib" should "return 0" in {
-    fib(2) should be (1)
+    fibTailRecur(4) should be (3)
   }
 
   "findFirst" should "return 3" in {
