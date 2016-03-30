@@ -1,3 +1,4 @@
+import scala.annotation.tailrec
 
 val x = 1 :: 2 :: 3 :: 4 :: Nil
 
@@ -89,18 +90,117 @@ msort(List(2, -4, 5, 7, 1))
 msortParametrized[Int](List[Int](2, -4, 5, 7, 1))(Ordering.Int)
 
 
-def testImplicit(implicit a: A): Unit = {
+def testImplicit(implicit a: A[Int]): String = {
   a.toString
 }
 
-class A {
-  override def toString = "A"
+abstract class A[T] {
+
 }
 
-object B {
+implicit object IntA extends A[Int] {
 
-  implicit object A
+  override def toString = "a"
 }
 
+//implicit object IntB extends A[Int] {
+//
+//  override def toString = "b"
+//}
 
-testImplicit
+def map[T, U](transform: T => U)(in: List[T]) : List[U] = {
+
+  @tailrec
+  def mapTailRecur(acc: List[U])(in: List[T]) : List[U] = {
+    in match {
+      case Nil => acc
+      case (x :: xs) =>  mapTailRecur(acc :+ transform(x))(xs)
+    }
+  }
+
+  mapTailRecur(List())(in)
+}
+
+def mapTail[T, U](transform: T => U)(in: List[T]) : List[U] = {
+  in match {
+    case Nil => Nil
+    case (x :: xs) => transform(x) :: map (transform)(in)
+  }
+}
+
+def filter[T](p : T => Boolean)(in:List[T]) : List[T] = {
+  @tailrec
+  def filterTailRecur(acc: List[T])(in:List[T]) : List[T] = {
+    in match {
+        case Nil => acc
+        case x :: xs => {
+          if (p (x)) filterTailRecur(acc :+ x)(xs)
+          else filterTailRecur(acc)(xs)
+        }
+    }
+  }
+  filterTailRecur(List())(in)
+}
+
+def filterNot[T](p: T => Boolean)(in: List[T]) : List[T] = {
+  filter[T](x => !p(x))(in)
+}
+
+def partitiion[T](p: T => Boolean)(in: List[T]) : (List[T], List[T]) = {
+  (filter(p)(in), filterNot(p)(in))
+}
+
+partitiion[Int](x => x > 0)(List(-1, 1, 4, 5, -6))
+
+def pack[T] (in: List[T]) : List[List[T]] = {
+  in match {
+      case Nil => Nil
+      case (x :: xs) => {
+        val result = pack(xs)
+        result match {
+            case Nil => List(List(x))
+            case (r :: rs) => {
+              if (r.head == x) {
+                (x :: r) :: rs
+              }
+              else {
+                List(x) :: result
+              }
+            }
+        }
+      }
+  }
+}
+
+def encode[T](in: List[T]) : List[(T, Int)] = {
+  pack(in) map (x => (x.head, x.length))
+}
+
+def foldLeft[T, U] (op: (T, U) => U)(base: U)(in: List[T]) : U = {
+  in match {
+      case Nil => base
+      case (x :: xs) => {
+        foldLeft(op)(op(x, base))(xs)
+      }
+  }
+}
+
+def foldRight[T, U] (op: (T, U) => U)(base: U)(in: List[T]) : U = {
+  in match {
+    case Nil => base
+    case (x :: xs) => {
+      op(x, foldRight(op)(base)(xs))
+    }
+  }
+}
+
+def concat[T](a: List[T], b: List[T]) = foldRight[T, List[T]](_ :: _)(b)(a)
+
+pack[String](List("a", "a", "a", "b", "c", "c", "c", "a"))
+encode[String](List("a", "a", "a", "b", "c", "c", "c", "a"))
+
+foldLeft[Int, Int](_ + _)(0)(List(1, 2, 3, 4))
+
+foldRight[Int, Int](_ + _)(0)(List(1, 2, 3, 4))
+
+concat(List(1, 2, 3, 4, 5), List(6, 7, 8, 9, 10))
