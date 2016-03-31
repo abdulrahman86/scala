@@ -25,8 +25,7 @@ object Main extends App {
   val system = ActorSystem("HelloSystem")
   // default Actor constructor
   val helloActor = system.actorOf(Props[HelloActor], name = "helloactor")
-  val helloActor2 = system.actorOf(Props(new HelloActor2("Fred")), name = "helloactor2")
-
+  val helloActor2 = system.actorOf(Props(new HelloActor2("Fred")), name = "helloactor2"
   helloActor ! "hello"
   helloActor ! "buenos dias"
   helloActor2 ! "hello"
