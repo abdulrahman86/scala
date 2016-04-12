@@ -46,5 +46,21 @@ object List {
       case Cons(h, t) => t
   }
 
+  def map[A,B](l: List[A])(implicit f: A => B): List[B] = l match {
+    case Nil => Nil
+    case Cons(h, t) => Cons(f(h), map(tail(l)))
+  }
 
+
+  def flatMap[A,B](l: List[A])(implicit f: A => List[B]): List[B] =
+    concat(map(l))
+
+  def filter[A](l: List[A])(implicit f: A => Boolean): List[A] =
+    flatMap(l)(x => if(f(x)) List(x) else List())
+
+  def zipWith[A, B, C](l1: List[A])(l2: List[B])(implicit f: (A, B) => C): List[C] = (l1, l2) match {
+    case (Nil, _) => Nil
+    case (_, Nil) => Nil
+    case ((Cons(h1, t1), Cons(h2, t2))) => Cons(f(h1,h2), zipWith(t1)(t2))
+  }
 }
