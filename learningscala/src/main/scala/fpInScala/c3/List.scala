@@ -1,8 +1,53 @@
 package fpInScala.c3
 
+import scala.math.Ordering.Implicits._
+
 sealed trait List[+A]
 case object Nil extends List[Nothing]
 case class Cons[+A](head: A, tail: List[A]) extends List[A]
+
+sealed trait Tree[+T]
+final object Empty extends Tree[Nothing]
+final case class Leaf[A](value: A) extends Tree[A]
+final case class Branch[A](elem: A, left: Tree[A], right: Tree[A]) extends Tree[A]
+
+
+object Tree {
+
+  def fold[A, B](t: Tree[A])(init: B)(op: (B, A, B) => B) : B = t match {
+    case Empty => init
+    case Leaf(x) => op(init, x, init)
+    case Branch(x, left, right) => op((fold(left)(init)(op)), x, fold(right)(init)(op))
+  }
+
+  def size[A](t: Tree[A]) : Int = fold[A, Int] (t)(0)((left, elem, right) => left + 1 + right)
+
+  def max(t: Tree[Int]) : Int = fold[Int, Int](t)(0)((left, elem, right) => Math.max(elem, Math.max(left, right)))
+
+  def depth[A](t: Tree[A]) : Int = fold[A, Int](t)(0)((left, elem, right) => 1 + (Math.max(left, right)))
+
+  def map[A, B](t: Tree[A])(f : A => B) : Tree[B] = fold[A, Tree[B]](t)(Empty)((left, elem, right) => Branch(f(elem), left, right))
+}
+
+object BinaryTree {
+
+  def insert[ A : Ordering] (t : Tree[A])(implicit elem : A): Tree[A] = {
+    val order = implicitly[Ordering[A]]
+    t match {
+      case Empty => Leaf(elem)
+      case Leaf(x) if (elem == x) => t
+      case Leaf(x) if (order.lt(elem, x)) => new Branch(elem, Empty, new Leaf(x))
+      case Leaf(x)  => new Branch(elem, new Leaf(x), Empty)
+      case Branch(x, left, right) if (elem == x) => t
+      case Branch(x, left, right) if (order.lt(elem, x)) => new Branch(x, insert(left), right)
+      case Branch(x, left, right) =>   new Branch(x, left, insert(right))
+    }
+  }
+
+  def apply[A: Ordering](as: A*): Tree[A] =
+    as.tail.foldLeft[Tree[A]](Leaf(as.head))((t, elem) => BinaryTree.insert(t)(implicitly[Ordering[A]], elem))
+}
+
 
 object List {
 
