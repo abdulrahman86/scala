@@ -1,4 +1,4 @@
-import fpInScala.c3.{List, BinaryTree, Tree}
+import fpInScala.c3.{List, BinaryTree, Tree, Functor, Test}
 
 val l1 = List(1, 2, 3)
 
@@ -21,3 +21,5 @@ Tree.max(BinaryTree(3, 4, 1, 7, 9, 33))
 Tree.depth(BinaryTree(3, 4, 1, 7, 9, 33))
 
 Tree.map(BinaryTree(3, 4, 1, 7, 9, 33))(_ + 5)
+
+Test.test2[Tuple1, Int, String](Tuple1(1))(x => "hello")
