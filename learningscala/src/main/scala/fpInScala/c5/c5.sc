@@ -38,4 +38,10 @@ Stream.toList(Stream.taken(30)(Stream.fibs))
 
 Stream.toList(Stream.taken(10)(Stream.fibs2))
 
+Stream.toList(Stream.map2[Int, Int](_ * 2)(Stream.apply(1, 2, 3, 4, 5)))
+
+Stream.toList(Stream.taken2(5)(Stream.apply(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)))
+
+
+
 

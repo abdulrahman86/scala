@@ -102,5 +102,30 @@ object Stream {
   def fibs2: Stream[Int] =
     unfold[Int, (Stream[Int], Stream[Int])](constant(0), constant(1))(x => Some(Stream.headOption(x._1).get, (x._2, constant(Stream.headOption(x._1).get + Stream.headOption(x._2).get))))
 
-  
+
+  def map2[A, B](f: A => B)(in: Stream[A]) =
+    unfold[B, Stream[A]](in)(x => x match {
+      case Empty => None
+      case Cons(h, t) => Some(f(h), t())
+    })
+
+  def taken2[A](n: Int)(in: Stream[A]) : Stream[A] =
+    unfold[A, (Int, Stream[A])]((n, in))(x => x match {
+      case (n, Cons(h, t)) if n > 0 => Some(h, (n-1, t()))
+      case _ => None
+    })
+
+  def takeWhile2[A](p: A => Boolean)(in: Stream[A]) : Stream[A] =
+    unfold[A, Stream[A]](in){
+      case Cons(h, t) if p(h) => Some(h, t())
+      case _ => None
+    }
+
+  def zipAll[A, B](in1: Stream[A], in2: Stream[B]): Stream[(Option[A], Option[B])] =
+    unfold[(Option[A], Option[B]), (Stream[A], Stream[B])]((in1, in2)) {
+      case (Cons(h1, t1), Cons(h2, t2)) => Some((Some(h1), Some(h2)), (t1(), t2()))
+      case (_, Cons(h2, t2)) => Some((None, Some(h2)), (Empty, t2()))
+      case (Cons(h1, t1), _) => Some((Some(h1), None), (t1(), Empty))
+      case _ => None
+    }
 }
