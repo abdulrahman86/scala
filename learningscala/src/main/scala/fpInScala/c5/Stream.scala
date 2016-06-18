@@ -25,8 +25,6 @@ object Stream {
     case _ => Empty
   }
 
-
-
   def toList[A](in: Stream[A]) : List[A] = in match {
     case Empty => List()
     case Cons(h, t) => h :: toList(t())
@@ -115,7 +113,7 @@ object Stream {
       case _ => None
     })
 
-  def takeWhile2[A](p: A => Boolean)(in: Stream[A]) : Stream[A] =
+  def takeWhile3[A](p: A => Boolean)(in: Stream[A]) : Stream[A] =
     unfold[A, Stream[A]](in){
       case Cons(h, t) if p(h) => Some(h, t())
       case _ => None
@@ -128,4 +126,24 @@ object Stream {
       case (Cons(h1, t1), _) => Some((Some(h1), None), (t1(), Empty))
       case _ => None
     }
+
+  def tails[A](in: Stream[A]): Stream[Stream[A]] =
+    unfold[Stream[A],Stream[A]](in)({
+      case Empty => None
+      case x => Some((x, tail(x)))
+    })
+
+  def scan[A, S](z: S)(f : (A, =>S) => S)(in: Stream[A]): Stream[S] =
+    unfold[S, Stream[A]](in){
+      case Empty => None
+      case x => Some((foldRight[A, S](z)(f)(x), tail(x)))
+    }
+
+  def scan2[A, S](z: S)(f : (A, =>S) => S)(in: Stream[A]): Stream[S] = in match {
+    case Empty => Stream(z)
+    case x =>  cons(foldRight[A, S](z)(f)(x), scan2(z)(f)(tail(x)))
+  }
+
+  def tails2[A](in: Stream[A]): Stream[Stream[A]] =
+    scan2[A, Stream[A]](Empty)((x, y) => cons(x, y))(in)
 }
