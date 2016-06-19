@@ -24,8 +24,6 @@ Stream.toList(Stream.filter[Int](_ % 2 == 0)(Stream.apply(1, 2, 3, 4, 5, 6)))
 
 Stream.toList(Stream.append[Int](Stream.apply(1, 2))(Stream.apply(3, 4, 5)))
 
-Stream.toList(Stream.flatMap(Stream.apply(Stream.apply(1, 2, 3, 4, 5), Stream.apply(6, 7, 8, 9, 10))))
-
 val ones : Stream[Int] = Stream.constant(1)
 
 Stream.toList(Stream.taken(15)(ones))
@@ -43,8 +41,3 @@ Stream.toList(Stream.map2[Int, Int](_ * 2)(Stream.apply(1, 2, 3, 4, 5)))
 Stream.toList(Stream.taken2(5)(Stream.apply(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)))
 
 Stream.toList(Stream.scan2[Int, Int](0)(_ + _)(Stream(1, 2, 3)))
-
-Stream.toList(Stream.flatMap(Stream.tails[Int](Stream(1, 2, 3))))
-
-
-

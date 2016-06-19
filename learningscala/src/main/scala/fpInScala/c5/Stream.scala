@@ -76,8 +76,8 @@ object Stream {
     foldRight[A, Stream[A]](in2)((x, y) => cons(x, y))(in1)
 
 
-  def flatMap[A](in: Stream[Stream[A]]) =
-    foldRight[Stream[A], Stream[A]](Empty)((x, y) => append(x)(y))(in)
+  def flatMap[A, B](f: A => Stream[B])(in: Stream[A]): Stream[B] =
+    foldRight[Stream[B], Stream[B]](Empty)((x, y) => append[B](x)(y))(map[A, Stream[B]](f)(in))
 
   def constant[A](a: A) : Stream[A] =
     cons(a, constant(a))
