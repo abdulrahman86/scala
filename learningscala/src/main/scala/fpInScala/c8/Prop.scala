@@ -3,14 +3,70 @@ package fpInScala.c8
 import fpInScala.c6.State.State
 import fpInScala.c5.Stream
 import fpInScala.c6.{RNG, State}
+import fpInScala.c8.Prop.{Result, TestCases}
 import week4.False;
 
-trait Prop {
+object Prop {
 
-  def check: Boolean
-  def && (p: Prop) = new Prop {
-    override def check: Boolean = Prop.this.check && p.check
+  case class Prop(run: (TestCases, RNG) => Result)
+
+  def && (p1 : Prop)(p2: Prop): Prop = Prop(
+    run = (testCases: TestCases, rng: RNG) =>
+      p1.run(testCases, rng) match {
+        case Falsified(x, y) => Falsified(x, y)
+        case Passed => p2.run(testCases, rng) match {
+          case Falsified(x, y) => Falsified(x, testCases + y)
+          case _ => Passed
+        }
+      }
+  )
+
+  def || (p1 : Prop)(p2: Prop): Prop = Prop(
+    run = (testCases: TestCases, rng: RNG) =>
+      p1.run(testCases, rng) match {
+        case Passed => Passed
+        case Falsified(x, y) => p2.run(testCases, rng) match {
+          case Passed => Passed
+          case Falsified(x, y) => Falsified(x, 2 * testCases)
+        }
+      })
+
+  sealed trait Result {
+    def isFalsified: Boolean
   }
+
+  case object Passed extends Result {
+    def isFalsified = false
+  }
+
+  case class Falsified(failure: FailedCase, successes: SuccessCount) extends Result  {
+    def isFalsified = true
+  }
+
+  def forAll[A](as: Gen[A])(f: A => Boolean): Prop = Prop {
+    (n, rng) => {
+      Stream.find[Result](_.isFalsified)(Stream.map[(Option[A], Option[Int]), Result]{
+        case (Some(a), Some(i)) => try {
+          if(f(a)) Passed else Falsified(a.toString, i)
+        } catch {
+          case e: Exception => Falsified(buildMsg(a, e), i)
+        }
+      }(Stream.taken2[(Option[A], Option[Int])](n)(Stream.zipAll[A, Int](randomStream[A](as)(rng), Stream.from(0))))).getOrElse(Passed)
+    }
+  }
+
+  def buildMsg[A](s: A, e: Exception): String =
+    s"test case : $s\n" +
+    s"generated an exception: ${e.getMessage}\n" +
+    s"stack trace:\n ${e.getStackTrace.mkString("\n")}"
+
+  def randomStream[A](g: Gen[A])(rng: RNG): Stream[A] =
+    Stream.unfold(rng)(rng => Some(g.sample(rng)))
+
+  type TestCases = Int
+  type SuccessCount = Int
+  type FailedCase = String
+  //type Result = Option[(FailedCase, SuccessCount)]
 }
 
 case class Gen[A] (sample: State[RNG, A])

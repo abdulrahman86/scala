@@ -72,6 +72,9 @@ object Stream {
   def filter[A](p : A => Boolean)(in: Stream[A]) =
     foldRight[A, Stream[A]](Empty)((x, y) => if (p(x)) cons(x, y) else y)(in)
 
+  def find[A](p: A => Boolean)(in: Stream[A]): Option[A] =
+    Stream.headOption(filter(p)(in))
+
   def append[A](in1: => Stream[A])(in2: => Stream[A]) : Stream[A] =
     foldRight[A, Stream[A]](in2)((x, y) => cons(x, y))(in1)
 
