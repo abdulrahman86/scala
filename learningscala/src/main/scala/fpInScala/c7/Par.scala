@@ -43,7 +43,7 @@ object Par {
 
 
   def map[A, B](pa: Par[A])(f: A => B): Par[B] =
-    map2[A,_, B]((a, _ ) => f(a))(pa)(unit(()))
+    map2[A,Int, B]((a, _ ) => f(a))(pa)(unit(1))
 
   def async[A, B](f: A => B): A => Par[B] =
     a => fork(unit(f(a)))
