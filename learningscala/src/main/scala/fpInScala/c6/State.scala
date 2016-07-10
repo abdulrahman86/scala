@@ -33,5 +33,4 @@ object State {
         (t1 :: t2, s3)
       }
     })
-
 }
