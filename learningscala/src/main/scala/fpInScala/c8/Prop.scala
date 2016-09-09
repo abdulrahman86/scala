@@ -69,6 +69,11 @@ object Prop {
     }
   }
 
+  def check(p: => Boolean) : Prop =
+    Prop {
+      (_, _, _) => if(p) Passed else Falsified("()", 0)
+    }
+
   def run (p: Prop, maxSize: MaxSize = 100, testCases: TestCases = 100, rng:RNG =  SimpleRNG(System.currentTimeMillis())) =
     p.run(maxSize, testCases, rng) match {
       case Falsified(msg, n) => println(s"Falsified afer $n passed tests:\n $msg")
@@ -110,6 +115,15 @@ object Gen {
   })
 
   def map[A, B](f: A => B)(in: Gen[A]): Gen[B] = Gen[B](State.map(f)(in.sample))
+
+  def map2[A, B, C](f: (A, B) => C)(in1: Gen[A])(in2: Gen[B]): Gen[C] =
+    Gen[C](rng => {
+      val (a, nRng1) = in1.sample(rng)
+      val (b, nRng2) = in2.sample(nRng1)
+      (f(a, b), nRng2)
+    })
+
+  def **[A, B](in1: Gen[A])(in2: Gen[B]): Gen[(A,B)] = map2[A, B, (A, B)]((_, _))(in1)(in2)
 
   def boolean: Gen[Boolean] = Gen.map[Int, Boolean](x => x match {
     case 0 => false

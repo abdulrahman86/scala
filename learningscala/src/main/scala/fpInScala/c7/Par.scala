@@ -52,6 +52,22 @@ object Par {
     override def call(): A = a(es).get()
   })
 
+  def product[A, B] (fa: Par[A], fb: Par[B]): Par[(A, B)] =
+    es => {
+      val a = fa(es)
+      val b = fb(es)
+      UnitFuture((a.get(), b.get()))
+    }
+
+  def map1[A, B](pa: Par[A])(f: A => B): Par[B] =
+    es => {
+      UnitFuture(f(pa(es).get()))
+    }
+
+  def map21[A, B, C](f: ((A, B)) => C)(a: Par[A])(b: Par[B]) : Par[C] =
+    map1[(A, B), C](product[A, B](a, b))(f)
+
+
   def lazyUnit[A](a: => A) : Par[A] = fork(unit(a))
 
   private case class UnitFuture[A] (get: A) extends Future[A] {
