@@ -21,15 +21,17 @@ object Par {
     }
 
   def sequence[A](ps: List[Par[A]]): Par[List[A]] =
-    ps.foldRight[Par[List[A]]](unit (List()))((a: Par[A], b: Par[List[A]]) => {
-      es: ExecutorService => {
-        val r1 = a(es)
-        val r2 = b(es)
-        UnitFuture(r1.get() :: r2.get())
-      }
-    })
+    ps.foldRight[Par[List[A]]](unit (List()))((a: Par[A], b: Par[List[A]]) =>
+      Par.map2[A, List[A], List[A]]((c, d) => c :: d)(a)(b)
+    )
 
-  def parMap[A, B](ps: List[A])(f: A => B): Par[List[B]] = {
+  def sequenceRight[A](as: List[Par[A]]): Par[List[A]] =
+    as match {
+      case Nil => unit(Nil)
+      case h :: t => map2[A, List[A], List[A]](_ :: _)(h)(fork(sequenceRight(t)))
+    }
+
+  def parMap[A, B](ps: List[A])(f: A => B): Par[List[B]] = fork {
     val fbs : List[Par[B]] = ps.map(async(f))
     sequence(fbs)
   }
