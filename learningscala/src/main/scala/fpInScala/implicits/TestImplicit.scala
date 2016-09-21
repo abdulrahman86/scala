@@ -5,11 +5,11 @@ object Implicits1 {
   implicit def a: String = "hello"
 
   trait ContextBound[T] {
-    def string1 = "contextBound"
+    def string1: String
   }
 
   implicit object ContextBound1 extends ContextBound[TestContextBound] {
-
+    def string1: String = "contextBound1"
   }
 }
 
@@ -42,7 +42,7 @@ object Test {
 
   def testViewBound[C <% ViewBound[_]](c: C) = c.string1
 
-  def testContextBound[C: ContextBound](c: C) = {
+  def testContextBound[C: ContextBound](c: C): String = {
     implicitly[ContextBound[C]].string1
   }
 
